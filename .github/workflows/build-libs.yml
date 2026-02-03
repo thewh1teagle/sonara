@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         # macos-arm64, macos-x86_64, linux-x86_64, linux-arm64, windows-x86_64
-        runner: [macos-14, macos-13, ubuntu-24.04, ubuntu-24.04-arm, windows-latest]
+        runner: [macos-14, macos-15-intel, ubuntu-24.04, ubuntu-24.04-arm, windows-latest]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
