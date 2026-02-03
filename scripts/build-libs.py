@@ -75,10 +75,15 @@ def lib_names() -> list[str]:
     return common
 
 
-def find_lib(build_dir: Path, name: str) -> Path:
-    """Find a static lib by name anywhere under build_dir."""
-    for p in build_dir.rglob(name):
-        return p
+def find_lib(build_dir: Path, name: str) -> tuple[Path, str]:
+    """Find a static lib by expected name (and Windows no-prefix fallback)."""
+    candidates = [name]
+    if platform.system() == "Windows" and name.startswith("lib"):
+        candidates.append(name[3:])
+
+    for candidate in candidates:
+        for p in build_dir.rglob(candidate):
+            return p, candidate
     raise FileNotFoundError(f"{name} not found under {build_dir}")
 
 
@@ -89,9 +94,10 @@ def package(build_dir: Path, src_dir: Path, archive: Path):
     (pkg / "lib").mkdir(parents=True)
     (pkg / "include").mkdir(parents=True)
     for name in lib_names():
-        lib = find_lib(build_dir, name)
-        print(f"  found {name} at {lib}")
-        shutil.copy2(lib, pkg / "lib" / lib.name)
+        lib, matched_name = find_lib(build_dir, name)
+        print(f"  found {matched_name} at {lib} (packaged as {name})")
+        # Normalize archive names so cgo -l<name> works consistently on every platform.
+        shutil.copy2(lib, pkg / "lib" / name)
     shutil.copy2(src_dir / "include/whisper.h", pkg / "include/whisper.h")
     with tarfile.open(archive, "w:gz") as tar:
         for item in pkg.iterdir():
