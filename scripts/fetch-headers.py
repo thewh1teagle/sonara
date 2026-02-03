@@ -12,7 +12,7 @@ from pathlib import Path
 
 WHISPER_REPO = "ggml-org/whisper.cpp"
 GGML_REPO = "ggml-org/llama.cpp"  # ggml headers live here
-WHISPER_COMMIT = "32b17abdb044a17cfeb6cdf26215cfa01756fea4"
+WHISPER_COMMIT = "aa1bc0d1a6dfd70dbb9f60c11df12441e03a9075"
 
 HEADERS = [
     (WHISPER_REPO, WHISPER_COMMIT, "include/whisper.h"),

@@ -5,3 +5,6 @@ models/
 samples/
 sonara
 whisper.cpp/
+whisper-src/
+whisper-build/
+*.tar.gz
