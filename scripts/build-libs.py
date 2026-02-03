@@ -65,24 +65,21 @@ def build(src_dir: Path, build_dir: Path):
     run("cmake", "--build", str(build_dir), "--config", "Release", f"-j{jobs}")
 
 
-def lib_paths(build_dir: Path) -> list[Path]:
-    common = [
-        build_dir / "src/libwhisper.a",
-        build_dir / "ggml/src/libggml.a",
-        build_dir / "ggml/src/libggml-base.a",
-        build_dir / "ggml/src/libggml-cpu.a",
-    ]
+def lib_names() -> list[str]:
+    common = ["libwhisper.a", "libggml.a", "libggml-base.a", "libggml-cpu.a"]
     system = platform.system()
     if system == "Darwin":
-        common += [
-            build_dir / "ggml/src/ggml-metal/libggml-metal.a",
-            build_dir / "ggml/src/ggml-blas/libggml-blas.a",
-        ]
+        common += ["libggml-metal.a", "libggml-blas.a"]
     elif system in ("Linux", "Windows"):
-        common += [
-            build_dir / "ggml/src/ggml-vulkan/libggml-vulkan.a",
-        ]
+        common += ["libggml-vulkan.a"]
     return common
+
+
+def find_lib(build_dir: Path, name: str) -> Path:
+    """Find a static lib by name anywhere under build_dir."""
+    for p in build_dir.rglob(name):
+        return p
+    raise FileNotFoundError(f"{name} not found under {build_dir}")
 
 
 def package(build_dir: Path, src_dir: Path, archive: Path):
@@ -91,7 +88,9 @@ def package(build_dir: Path, src_dir: Path, archive: Path):
         shutil.rmtree(pkg)
     (pkg / "lib").mkdir(parents=True)
     (pkg / "include").mkdir(parents=True)
-    for lib in lib_paths(build_dir):
+    for name in lib_names():
+        lib = find_lib(build_dir, name)
+        print(f"  found {name} at {lib}")
         shutil.copy2(lib, pkg / "lib" / lib.name)
     shutil.copy2(src_dir / "include/whisper.h", pkg / "include/whisper.h")
     with tarfile.open(archive, "w:gz") as tar:
