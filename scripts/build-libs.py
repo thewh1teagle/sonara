@@ -43,6 +43,9 @@ def cmake_flags() -> list[str]:
     flags = [
         "-DCMAKE_BUILD_TYPE=Release",
         "-DBUILD_SHARED_LIBS=OFF",
+        "-DWHISPER_BUILD_EXAMPLES=OFF",
+        "-DWHISPER_BUILD_TESTS=OFF",
+        "-DWHISPER_BUILD_SERVER=OFF",
     ]
     system = platform.system()
     if system == "Darwin":
