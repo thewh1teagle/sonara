@@ -79,3 +79,12 @@ with open("sample.wav", "rb") as f:
 
 print(result.text)
 ```
+
+📚 API Docs
+
+Interactive docs (Swagger UI):
+http://localhost:11531/docs
+
+OpenAPI spec:
+http://localhost:11531/openapi.json
+
