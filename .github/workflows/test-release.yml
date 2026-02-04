@@ -65,7 +65,7 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          "./${BINARY}" models/ggml-tiny.bin samples/jfk.wav
+          "./${BINARY}" transcribe models/ggml-tiny.bin samples/jfk.wav
 
       - name: Download release bundle and test assets (Windows)
         if: runner.os == 'Windows'
@@ -82,4 +82,4 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          .\${{ matrix.binary }} models\ggml-tiny.bin samples\jfk.wav
+          .\${{ matrix.binary }} transcribe models\ggml-tiny.bin samples\jfk.wav
