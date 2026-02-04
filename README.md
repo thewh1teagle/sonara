@@ -41,14 +41,14 @@ Model list:
 https://huggingface.co/ggerganov/whisper.cpp/tree/main
 
 Using Sona:
-```shell
+```console
 ./sona pull https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 ```
 
 ---
 
 ### 3. Start the server
-```shell
+```console
 ./sona serve ./ggml-base.bin
 ```
 
@@ -58,7 +58,7 @@ Using Sona:
 
 Sona speaks the OpenAI API, so existing clients just work.
 
-```shell
+```console
 wget https://github.com/ggml-org/whisper.cpp/raw/refs/heads/master/samples/jfk.wav -O sample.wav
 pip install openai
 ```
