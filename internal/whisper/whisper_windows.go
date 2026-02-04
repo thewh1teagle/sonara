@@ -10,6 +10,23 @@ package whisper
 #cgo LDFLAGS: -Wl,-Bstatic -lstdc++ -lgomp -lwinpthread -Wl,-Bdynamic
 #include <whisper.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+static int sonara_whisper_verbose = 0;
+
+static void sonara_whisper_log_callback(enum ggml_log_level level, const char * text, void * user_data) {
+    (void) level;
+    (void) user_data;
+    if (!sonara_whisper_verbose) {
+        return;
+    }
+    fputs(text, stderr);
+}
+
+static void sonara_whisper_set_verbose(int verbose) {
+    sonara_whisper_verbose = verbose;
+    whisper_log_set(sonara_whisper_log_callback, NULL);
+}
 */
 import "C"
 
@@ -21,6 +38,14 @@ import (
 
 type Context struct {
 	ctx *C.struct_whisper_context
+}
+
+func SetVerbose(v bool) {
+	if v {
+		C.sonara_whisper_set_verbose(1)
+		return
+	}
+	C.sonara_whisper_set_verbose(0)
 }
 
 func New(modelPath string) (*Context, error) {
@@ -41,6 +66,10 @@ func (c *Context) Transcribe(samples []float32, opts TranscribeOptions) (string,
 	}
 
 	params := C.whisper_full_default_params(C.WHISPER_SAMPLING_GREEDY)
+	params.print_special = C.bool(opts.Verbose)
+	params.print_progress = C.bool(opts.Verbose)
+	params.print_realtime = C.bool(opts.Verbose)
+	params.print_timestamps = C.bool(opts.Verbose)
 
 	if opts.Language != "" {
 		cLang := C.CString(opts.Language)

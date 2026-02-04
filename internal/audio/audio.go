@@ -12,6 +12,12 @@ import (
 	"github.com/thewh1teagle/sonara/internal/wav"
 )
 
+var verbose bool
+
+func SetVerbose(v bool) {
+	verbose = v
+}
+
 // findFFmpeg prefers a system ffmpeg from $PATH, then falls back
 // to a bundled ffmpeg next to the current binary.
 func findFFmpeg() (string, error) {
@@ -58,7 +64,11 @@ func convertWithFFmpeg(r io.Reader, ffmpegPath string) ([]float32, error) {
 		"-acodec", "pcm_s16le",
 		"pipe:1",
 	)
-	cmd.Stderr = os.Stderr
+	if verbose {
+		cmd.Stderr = os.Stderr
+	} else {
+		cmd.Stderr = io.Discard
+	}
 
 	out, err := cmd.Output()
 	if err != nil {

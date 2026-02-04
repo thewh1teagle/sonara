@@ -20,8 +20,9 @@ func main() {
 	}
 
 	var language, prompt string
-	var translate bool
+	var translate, verbose bool
 	var threads int
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "show ffmpeg and whisper/ggml logs")
 
 	transcribeCmd := &cobra.Command{
 		Use:   "transcribe <model.bin> <audio.wav>",
@@ -30,6 +31,8 @@ func main() {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			modelPath := args[0]
 			wavPath := args[1]
+			audio.SetVerbose(verbose)
+			whisper.SetVerbose(verbose)
 
 			samples, err := audio.ReadFile(wavPath)
 			if err != nil {
@@ -47,6 +50,7 @@ func main() {
 				Translate: translate,
 				Threads:   threads,
 				Prompt:    prompt,
+				Verbose:   verbose,
 			}
 			text, err := ctx.Transcribe(samples, opts)
 			if err != nil {
@@ -68,6 +72,8 @@ func main() {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			modelPath := args[0]
+			audio.SetVerbose(verbose)
+			whisper.SetVerbose(verbose)
 
 			ctx, err := whisper.New(modelPath)
 			if err != nil {
@@ -75,7 +81,7 @@ func main() {
 			}
 			defer ctx.Close()
 
-			srv := server.New(ctx, modelPath)
+			srv := server.New(ctx, modelPath, verbose)
 			addr := fmt.Sprintf(":%d", port)
 			return server.ListenAndServe(addr, srv)
 		},

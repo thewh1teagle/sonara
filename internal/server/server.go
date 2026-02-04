@@ -19,12 +19,14 @@ type Server struct {
 	ctx       *whisper.Context
 	mu        sync.Mutex
 	modelName string
+	verbose   bool
 }
 
-func New(ctx *whisper.Context, modelPath string) *Server {
+func New(ctx *whisper.Context, modelPath string, verbose bool) *Server {
 	return &Server{
 		ctx:       ctx,
 		modelName: filepath.Base(modelPath),
+		verbose:   verbose,
 	}
 }
 
@@ -54,6 +56,7 @@ func (s *Server) handleTranscription(w http.ResponseWriter, r *http.Request) {
 	opts := whisper.TranscribeOptions{
 		Language: r.FormValue("language"),
 		Prompt:   r.FormValue("prompt"),
+		Verbose:  s.verbose,
 	}
 
 	s.mu.Lock()

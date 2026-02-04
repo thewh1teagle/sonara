@@ -10,4 +10,5 @@ type TranscribeOptions struct {
 	Translate bool   // translate to English
 	Threads   int    // CPU threads (0 = whisper default)
 	Prompt    string // initial prompt / vocabulary hint
+	Verbose   bool   // enable whisper/ggml logs
 }
