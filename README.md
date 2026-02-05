@@ -57,23 +57,23 @@ https://github.com/thewh1teagle/sona/releases
 
 ### 2. Download a model
 
-'''
+```
 ./sona pull https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
-'''
+```
 
 ### 3. Start Sona
 
-'''
+```
 ./sona serve --port 0
-'''
+```
 
 Using port 0 lets the OS assign a free port automatically.
 
 When ready, Sona prints a single machine-readable line to stdout:
 
-'''
+```
 {"status":"ready","port":52341}
-'''
+```
 
 This is intended for parent processes to detect readiness and discover the bound port.
 
