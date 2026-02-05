@@ -1,25 +1,52 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import signal
 import subprocess
 import sys
+from pathlib import Path
 
 
 class SonaError(Exception):
     pass
 
 
+def _find_binary() -> str | None:
+    """Look for ``sona`` in cwd, next to the script, in venv bin, then PATH."""
+    name = "sona.exe" if sys.platform == "win32" else "sona"
+
+    candidates = [
+        # 1. Current working directory
+        Path.cwd() / name,
+        # 2. Next to the running script
+        *(
+            [Path(m.__file__).resolve().parent / name]
+            if (m := sys.modules.get("__main__")) and getattr(m, "__file__", None)
+            else []
+        ),
+        # 3. Next to the Python interpreter (venv bin/)
+        Path(sys.executable).resolve().parent / name,
+    ]
+
+    for c in candidates:
+        if c.is_file() and os.access(c, os.X_OK):
+            return str(c)
+
+    # 4. PATH
+    return shutil.which("sona")
+
+
 class Runner:
     """Manages the ``sona`` child process lifecycle."""
 
     def __init__(self, port: int = 0) -> None:
-        binary = shutil.which("sona")
+        binary = _find_binary()
         if binary is None:
             raise SonaError(
-                "'sona' binary not found on PATH. "
-                "Install it or add its location to PATH."
+                "'sona' binary not found. Place it next to your script, "
+                "in your virtualenv bin/, or on PATH."
             )
 
         self._process = subprocess.Popen(
