@@ -69,7 +69,7 @@ High-level layout of the codebase:
 
 2. Once bound, Sona prints exactly one machine-readable line to stdout:
 
-```
+```json
 {"status":"ready","port":52341}
 ```
 
