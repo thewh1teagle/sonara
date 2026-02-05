@@ -112,8 +112,6 @@ Sona is a good fit if you want:
 - Full control over models and hardware
 - An OpenAI-like API without the OpenAI dependency
 
-If you just want hosted transcription, Sona is probably not what you need.
-
 ---
 
 ## Documentation 📚
