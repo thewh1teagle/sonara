@@ -87,8 +87,8 @@ func (s *Server) Handler() http.Handler {
 
 // ListenAndServe binds to the given port (0 = auto-assign), prints a ready
 // signal to stdout, and serves until interrupted.
-func ListenAndServe(port int, s *Server) error {
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+func ListenAndServe(host string, port int, s *Server) error {
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func ListenAndServe(port int, s *Server) error {
 		"port":   actualPort,
 	})
 	fmt.Println(string(readyMsg))
-	log.Printf("listening on :%d", actualPort)
+	log.Printf("listening on %s:%d", host, actualPort)
 
 	srv := &http.Server{Handler: s.Handler()}
 

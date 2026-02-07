@@ -80,6 +80,7 @@ func (a *app) newTranscribeCommand() *cobra.Command {
 }
 
 func (a *app) newServeCommand() *cobra.Command {
+	var host string
 	var port int
 
 	cmd := &cobra.Command{
@@ -99,10 +100,11 @@ func (a *app) newServeCommand() *cobra.Command {
 				}
 			}
 
-			return server.ListenAndServe(port, s)
+			return server.ListenAndServe(host, port, s)
 		},
 	}
 
+	cmd.Flags().StringVar(&host, "host", "127.0.0.1", "host to bind to")
 	cmd.Flags().IntVarP(&port, "port", "p", 0, "port to listen on (0 = auto-assign)")
 	return cmd
 }
