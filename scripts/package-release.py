@@ -2,12 +2,14 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "httpx==0.28.1",
+#     "py7zr==0.22.0",
 # ]
 # ///
 
 """Package a Sona release archive with a bundled ffmpeg binary."""
 
 import argparse
+import io
 import shutil
 import tarfile
 import tempfile
@@ -15,29 +17,13 @@ import zipfile
 from pathlib import Path
 
 import httpx
+import py7zr
 
 
 FFMPEG_URLS = {
-    (
-        "darwin",
-        "amd64",
-    ): "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-x64",
-    (
-        "darwin",
-        "arm64",
-    ): "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-arm64",
-    (
-        "linux",
-        "amd64",
-    ): "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64",
-    (
-        "linux",
-        "arm64",
-    ): "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-arm64",
-    (
-        "windows",
-        "amd64",
-    ): "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-win32-x64",
+    ("darwin", "amd64"): "https://www.osxexperts.net/ffmpeg80intel.zip",
+    ("darwin", "arm64"): "https://www.osxexperts.net/ffmpeg80arm.zip",
+    ("windows", "amd64"): "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z",
 }
 
 
@@ -56,10 +42,28 @@ def resolve_ffmpeg_url(goos: str, goarch: str) -> str:
 
 
 def copy_ffmpeg(stage_dir: Path, goos: str, goarch: str):
-    ffmpeg_name = "ffmpeg.exe" if goos == "windows" else "ffmpeg"
-    ffmpeg_path = stage_dir / ffmpeg_name
-    data = download_bytes(resolve_ffmpeg_url(goos, goarch))
-    ffmpeg_path.write_bytes(data)
+    url = resolve_ffmpeg_url(goos, goarch)
+    data = download_bytes(url)
+
+    if goos == "windows":
+        ffmpeg_path = stage_dir / "ffmpeg.exe"
+        with py7zr.SevenZipFile(io.BytesIO(data), "r") as archive:
+            for fname, bio in archive.read().items():
+                if Path(fname).name == "ffmpeg.exe":
+                    ffmpeg_path.write_bytes(bio.read())
+                    break
+            else:
+                raise FileNotFoundError("ffmpeg.exe not found in 7z archive")
+    else:
+        ffmpeg_path = stage_dir / "ffmpeg"
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            for name in zf.namelist():
+                if Path(name).name == "ffmpeg":
+                    ffmpeg_path.write_bytes(zf.read(name))
+                    break
+            else:
+                raise FileNotFoundError("ffmpeg not found in zip archive")
+
     ffmpeg_path.chmod(0o755)
 
 
@@ -94,7 +98,7 @@ def package(binary_path: Path, out_path: Path, goos: str, goarch: str):
 def main():
     parser = argparse.ArgumentParser(description="Package Sona release archive")
     parser.add_argument("--binary", required=True, help="Built sona binary path")
-    parser.add_argument("--goos", required=True, choices=["linux", "darwin", "windows"])
+    parser.add_argument("--goos", required=True, choices=["darwin", "windows"])
     parser.add_argument("--goarch", required=True, choices=["amd64", "arm64"])
     parser.add_argument(
         "--out", required=True, help="Output archive path (.tar.gz or .zip)"

@@ -38,12 +38,10 @@ jobs:
             goos: linux
             goarch: amd64
             binary: sona-linux-amd64
-            archive: sona-linux-amd64-with-ffmpeg.tar.gz
           - runner: ubuntu-24.04-arm
             goos: linux
             goarch: arm64
             binary: sona-linux-arm64
-            archive: sona-linux-arm64-with-ffmpeg.tar.gz
           - runner: macos-14
             goos: darwin
             goarch: arm64
@@ -87,6 +85,7 @@ jobs:
           CGO_ENABLED=1 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
           go build -o "${{ matrix.binary }}" -ldflags "-X main.version=${VERSION}" ./cmd/sona
       - name: Package release bundle with ffmpeg
+        if: matrix.archive != ''
         shell: bash
         run: |
           uv run scripts/package-release.py \
@@ -100,6 +99,7 @@ jobs:
         run: |
           & "$env:RUNNER_TEMP\msys64\mingw64\bin\objdump.exe" -p "${{ matrix.binary }}" | Select-String "DLL Name"
       - name: Upload packaged archive to release
+        if: matrix.archive != ''
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
