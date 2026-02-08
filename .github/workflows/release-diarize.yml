@@ -54,12 +54,12 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Build sona-diarize
         shell: bash
-        working-directory: sona/diarize
+        working-directory: diarize
         run: cargo build --release --target ${{ matrix.target }}
       - name: Rename binary
         shell: bash
         run: |
-          src="sona/diarize/target/${{ matrix.target }}/release/sona-diarize"
+          src="diarize/target/${{ matrix.target }}/release/sona-diarize"
           if [[ "${{ matrix.runner }}" == windows-* ]]; then
             src="${src}.exe"
           fi
