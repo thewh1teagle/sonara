@@ -29,7 +29,7 @@ func (a *app) newTranscribeCommand() *cobra.Command {
 	var language, prompt string
 	var translate, detectLanguage bool
 	var enhanceAudio, wordTimestamps bool
-	var threads, maxTextCtx, maxSegmentLen, bestOf, beamSize int
+	var threads, maxTextCtx, maxSegmentLen, bestOf, beamSize, gpuDevice int
 	var temperature float32
 
 	cmd := &cobra.Command{
@@ -49,7 +49,7 @@ func (a *app) newTranscribeCommand() *cobra.Command {
 				return fmt.Errorf("error reading audio: %w", err)
 			}
 
-			ctx, err := whisper.New(modelPath)
+			ctx, err := whisper.New(modelPath, gpuDevice)
 			if err != nil {
 				return fmt.Errorf("error loading model: %w", err)
 			}
@@ -89,6 +89,7 @@ func (a *app) newTranscribeCommand() *cobra.Command {
 	cmd.Flags().IntVar(&maxSegmentLen, "max-segment-len", 0, "max segment length in characters (0 = no limit)")
 	cmd.Flags().IntVar(&bestOf, "best-of", 0, "greedy sampling: top candidates (0 = default)")
 	cmd.Flags().IntVar(&beamSize, "beam-size", 0, "beam search: beam width (0 = default)")
+	cmd.Flags().IntVar(&gpuDevice, "gpu-device", -1, "GPU device index (-1 = whisper default)")
 	return cmd
 }
 
@@ -108,7 +109,7 @@ func (a *app) newServeCommand() *cobra.Command {
 
 			// Load initial model if provided.
 			if len(args) > 0 {
-				if err := s.LoadModel(args[0]); err != nil {
+				if err := s.LoadModel(args[0], -1); err != nil {
 					return fmt.Errorf("error loading model: %w", err)
 				}
 			}

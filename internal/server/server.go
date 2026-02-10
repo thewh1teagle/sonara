@@ -32,13 +32,14 @@ func New(verbose bool) *Server {
 }
 
 // LoadModel loads a whisper model, unloading any existing one first.
-func (s *Server) LoadModel(path string) error {
+// gpuDevice selects the GPU (-1 = use whisper default).
+func (s *Server) LoadModel(path string, gpuDevice int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.loadModelLocked(path)
+	return s.loadModelLocked(path, gpuDevice)
 }
 
-func (s *Server) loadModelLocked(path string) error {
+func (s *Server) loadModelLocked(path string, gpuDevice int) error {
 	if s.ctx != nil {
 		s.ctx.Close()
 		s.ctx = nil
@@ -46,7 +47,7 @@ func (s *Server) loadModelLocked(path string) error {
 		s.modelPath = ""
 	}
 
-	ctx, err := whisper.New(path)
+	ctx, err := whisper.New(path, gpuDevice)
 	if err != nil {
 		return err
 	}

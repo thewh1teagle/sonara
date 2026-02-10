@@ -45,14 +45,20 @@ func (s *Server) handleReady(w http.ResponseWriter, r *http.Request) {
 // handleModelLoad loads a model from a path in the JSON body.
 func (s *Server) handleModelLoad(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Path string `json:"path"`
+		Path      string `json:"path"`
+		GpuDevice *int   `json:"gpu_device,omitempty"` // optional; nil = whisper default
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Path == "" {
 		writeError(w, http.StatusBadRequest, "request body must contain {\"path\": \"...\"}")
 		return
 	}
 
-	if err := s.LoadModel(body.Path); err != nil {
+	gpuDevice := -1
+	if body.GpuDevice != nil {
+		gpuDevice = *body.GpuDevice
+	}
+
+	if err := s.LoadModel(body.Path, gpuDevice); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to load model: "+err.Error())
 		return
 	}

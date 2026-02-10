@@ -77,11 +77,14 @@ func SetVerbose(v bool) {
 	C.sona_whisper_set_verbose(0)
 }
 
-func New(modelPath string) (*Context, error) {
+func New(modelPath string, gpuDevice int) (*Context, error) {
 	cPath := C.CString(modelPath)
 	defer C.free(unsafe.Pointer(cPath))
 
 	params := C.whisper_context_default_params()
+	if gpuDevice >= 0 {
+		params.gpu_device = C.int(gpuDevice)
+	}
 	ctx := C.whisper_init_from_file_with_params(cPath, params)
 	if ctx == nil {
 		return nil, fmt.Errorf("whisper: failed to load model from %s", modelPath)
