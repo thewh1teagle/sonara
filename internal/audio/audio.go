@@ -1,6 +1,7 @@
 package audio
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -75,13 +76,22 @@ func ConvertToNativeWav(inputPath, outputPath string, enhanceAudio bool) error {
 	)
 
 	cmd := exec.Command(ffmpegPath, args...)
+	var stderrBuf bytes.Buffer
 	if verbose {
-		cmd.Stderr = os.Stderr
+		cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 	} else {
-		cmd.Stderr = io.Discard
+		cmd.Stderr = &stderrBuf
 	}
 
 	if err := cmd.Run(); err != nil {
+		stderr := stderrBuf.String()
+		if stderr != "" {
+			// Truncate stderr to avoid huge error messages
+			if len(stderr) > 500 {
+				stderr = stderr[:500] + "..."
+			}
+			return fmt.Errorf("ffmpeg WAV conversion failed: %w\nffmpeg stderr: %s", err, stderr)
+		}
 		return fmt.Errorf("ffmpeg WAV conversion failed: %w", err)
 	}
 	return nil
