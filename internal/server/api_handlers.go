@@ -320,19 +320,6 @@ func (s *Server) handleStreamingTranscription(w http.ResponseWriter, r *http.Req
 	flusher.Flush()
 }
 
-// handleDevices returns GPU/iGPU devices discovered by ggml backends.
-func (s *Server) handleDevices(w http.ResponseWriter, r *http.Request) {
-	devices := whisper.ListGPUDevices()
-	if devices == nil {
-		devices = []whisper.GPUDevice{}
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"object": "list",
-		"data":   devices,
-	})
-}
-
 func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	name := s.modelName

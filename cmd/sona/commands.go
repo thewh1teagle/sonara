@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/thewh1teagle/sona/internal/audio"
@@ -21,7 +23,7 @@ func newRootCommand() *cobra.Command {
 		Version: version,
 	}
 	rootCmd.PersistentFlags().BoolVarP(&a.verbose, "verbose", "v", false, "show ffmpeg and whisper/ggml logs")
-	rootCmd.AddCommand(a.newTranscribeCommand(), a.newServeCommand(), newPullCommand())
+	rootCmd.AddCommand(a.newTranscribeCommand(), a.newServeCommand(), newPullCommand(), newDevicesCommand())
 	return rootCmd
 }
 
@@ -123,4 +125,17 @@ func (a *app) newServeCommand() *cobra.Command {
 	cmd.Flags().StringVar(&host, "host", "127.0.0.1", "host to bind to")
 	cmd.Flags().IntVarP(&port, "port", "p", 0, "port to listen on (0 = auto-assign)")
 	return cmd
+}
+
+func newDevicesCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "devices",
+		Short: "List available GPU devices",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			devices := whisper.ListGPUDevices()
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			return enc.Encode(devices)
+		},
+	}
 }
